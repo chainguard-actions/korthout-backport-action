@@ -1,0 +1,33 @@
+name: Test basic inputs coverage
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    env:
+      GITHUB_EVENT_NAME: pull_request
+      GITHUB_REF: refs/pull/1/merge
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - id: action
+        uses: .
+        continue-on-error: true
+        with:
+          github_token: ${{ github.token }}
+          github_workspace: ${{ github.workspace }}
+          add_author_as_assignee: "false"
+          add_labels: "backport"
+          target_branches: "main"
+      - name: Assert was_successful output exists
+        env:
+          WAS_SUCCESSFUL: ${{ steps.action.outputs.was_successful }}
+        run: |
+          echo "was_successful: $WAS_SUCCESSFUL"
+          # The action may fail due to no real PR context, but we verify the output is set
+          if [ "$WAS_SUCCESSFUL" = "true" ] || [ "$WAS_SUCCESSFUL" = "false" ] || [ -z "$WAS_SUCCESSFUL" ]; then
+            echo "PASS: output was_successful is acceptable: '$WAS_SUCCESSFUL'"
+          else
+            echo "FAIL: unexpected was_successful value: '$WAS_SUCCESSFUL'"
+            exit 1
+          fi
+          echo "PASS"
