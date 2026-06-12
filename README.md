@@ -9,6 +9,7 @@ Hardened by [Chainguard](https://www.chainguard.dev) from the upstream action at
 
 | Version | Tag | Upstream commit |
 |---------|-----|-----------------|
+| v4.3.0 | [`v4.3.0`](https://github.com/chainguard-actions/korthout-backport-action/tree/v4.3.0) | [`3c06f32`](https://github.com/korthout/backport-action/commit/3c06f323a58619da1e8522229ebc8d5de2633e46) |
 | v4.5.1 | [`v4.5.1`](https://github.com/chainguard-actions/korthout-backport-action/tree/v4.5.1) | [`bf97bcf`](https://github.com/korthout/backport-action/commit/bf97bcfb53d5250af8b9a15fab0f56158a63b224) |
 
 ## Privacy
