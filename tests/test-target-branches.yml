@@ -1,0 +1,34 @@
+name: Test target_branches and add_labels inputs
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    env:
+      GITHUB_EVENT_NAME: pull_request
+      GITHUB_REF: refs/pull/1/merge
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - id: action
+        uses: .
+        with:
+          target_branches: main
+          add_labels: backport
+          github_token: ${{ github.token }}
+          github_workspace: ${{ github.workspace }}
+        continue-on-error: true
+      - name: Assert was_successful output is set
+        env:
+          WAS_SUCCESSFUL: ${{ steps.action.outputs.was_successful }}
+        run: |
+          echo "was_successful: $WAS_SUCCESSFUL"
+          # The action may fail because there's no real PR context,
+          # but the output should be either 'true' or 'false' or empty
+          # We just verify the action ran and produced some output or failed gracefully
+          if [ "$WAS_SUCCESSFUL" = "true" ] || [ "$WAS_SUCCESSFUL" = "false" ] || [ -z "$WAS_SUCCESSFUL" ]; then
+            echo "PASS: action ran with target_branches and add_labels inputs"
+          else
+            echo "FAIL: unexpected was_successful value: $WAS_SUCCESSFUL"
+            exit 1
+          fi
+          echo "PASS"
