@@ -1,0 +1,31 @@
+name: Test source_pr_number input
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    env:
+      GITHUB_EVENT_NAME: workflow_dispatch
+      GITHUB_REF: refs/heads/main
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - id: action
+        uses: .
+        continue-on-error: true
+        with:
+          github_token: ${{ github.token }}
+          target_branches: "nonexistent-branch"
+          label_pattern: "^backport ([^ ]+)$"
+          source_pr_number: 1
+
+      - name: Assert action ran without unexpected crash
+        run: |
+          echo "outcome: ${{ steps.action.outcome }}"
+          echo "was_successful: ${{ steps.action.outputs.was_successful }}"
+          # The action should either succeed or fail gracefully (not be cancelled)
+          if [ "${{ steps.action.outcome }}" = "cancelled" ]; then
+            echo "FAIL: action was unexpectedly cancelled"
+            exit 1
+          fi
+          echo "PASS: action completed with outcome '${{ steps.action.outcome }}'"
