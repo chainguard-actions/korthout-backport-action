@@ -14,6 +14,7 @@ Hardened by [Chainguard](https://www.chainguard.dev) from the upstream action at
 | v4.5.0 | [`v4.5.0`](https://github.com/chainguard-actions/korthout-backport-action/tree/v4.5.0) | [`7c3f6cd`](https://github.com/korthout/backport-action/commit/7c3f6cd5843cac11bc59a04a1b7699af93261670) |
 | v4.5.1 | [`v4.5.1`](https://github.com/chainguard-actions/korthout-backport-action/tree/v4.5.1) | [`bf97bcf`](https://github.com/korthout/backport-action/commit/bf97bcfb53d5250af8b9a15fab0f56158a63b224) |
 | v4.5.2 | [`v4.5.2`](https://github.com/chainguard-actions/korthout-backport-action/tree/v4.5.2) | [`6606540`](https://github.com/korthout/backport-action/commit/66065406958f46e82238fd59546f5a99e69e22aa) |
+| v4.6.0 | [`v4.6.0`](https://github.com/chainguard-actions/korthout-backport-action/tree/v4.6.0) | [`2e830a1`](https://github.com/korthout/backport-action/commit/2e830a1d0b8269505846ddd407a70876913ad1f8) |
 
 ## Privacy
 
