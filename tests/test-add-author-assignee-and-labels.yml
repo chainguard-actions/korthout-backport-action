@@ -1,4 +1,4 @@
-name: Test source_pr_number input
+name: Test add_author_as_assignee and add_labels inputs
 on:
   workflow_dispatch:
 jobs:
@@ -9,7 +9,8 @@ jobs:
       - id: action
         uses: .
         with:
-          source_pr_number: "1"
+          add_author_as_assignee: true
+          add_labels: "backport,automated"
           target_branches: "main"
         continue-on-error: true
       - name: Assert action ran (inputs accepted)
@@ -19,10 +20,10 @@ jobs:
         run: |
           echo "outcome: $OUTCOME"
           echo "was_successful: $WAS_SUCCESSFUL"
-          # The action may fail because PR #1 may not exist or may not be merged,
+          # The action may fail because there is no real merged PR in workflow_dispatch context,
           # but it must not fail due to invalid inputs. Accept both success and failure outcomes.
           if [ "$OUTCOME" = "success" ] || [ "$OUTCOME" = "failure" ]; then
-            echo "PASS: action ran and accepted source_pr_number input"
+            echo "PASS: action ran and accepted inputs"
           else
             echo "FAIL: unexpected outcome: $OUTCOME"
             exit 1

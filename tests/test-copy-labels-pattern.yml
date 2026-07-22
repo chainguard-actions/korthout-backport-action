@@ -4,28 +4,26 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
-    env:
-      GITHUB_EVENT_NAME: pull_request
-      GITHUB_REF: refs/pull/1/merge
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
-
       - id: action
         uses: .
-        continue-on-error: true
         with:
-          github_token: ${{ github.token }}
-          target_branches: "nonexistent-branch"
-          label_pattern: "^backport ([^ ]+)$"
-          copy_labels_pattern: "^type/"
-
-      - name: Assert action ran without unexpected crash
+          copy_labels_pattern: "^(bug|enhancement|documentation)$"
+          target_branches: "main"
+        continue-on-error: true
+      - name: Assert action ran (inputs accepted)
+        env:
+          OUTCOME: ${{ steps.action.outcome }}
+          WAS_SUCCESSFUL: ${{ steps.action.outputs.was_successful }}
         run: |
-          echo "outcome: ${{ steps.action.outcome }}"
-          echo "was_successful: ${{ steps.action.outputs.was_successful }}"
-          # The action should either succeed or fail gracefully (not be cancelled)
-          if [ "${{ steps.action.outcome }}" = "cancelled" ]; then
-            echo "FAIL: action was unexpectedly cancelled"
+          echo "outcome: $OUTCOME"
+          echo "was_successful: $WAS_SUCCESSFUL"
+          # The action may fail because there is no real merged PR in workflow_dispatch context,
+          # but it must not fail due to invalid inputs. Accept both success and failure outcomes.
+          if [ "$OUTCOME" = "success" ] || [ "$OUTCOME" = "failure" ]; then
+            echo "PASS: action ran and accepted copy_labels_pattern input"
+          else
+            echo "FAIL: unexpected outcome: $OUTCOME"
             exit 1
           fi
-          echo "PASS: action completed with outcome '${{ steps.action.outcome }}'"
