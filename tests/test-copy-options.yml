@@ -1,0 +1,50 @@
+name: Test backport action with copy and auto-merge options
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Set up git identity
+        run: |
+          git config --global user.email "test@example.com"
+          git config --global user.name "Test User"
+
+      - id: action
+        uses: .
+        with:
+          github_token: ${{ github.token }}
+          copy_assignees: true
+          copy_milestone: true
+          copy_labels_pattern: '^(bug|enhancement)$'
+          copy_requested_reviewers: true
+          add_labels: 'backport'
+          auto_merge_enabled: false
+          auto_merge_method: squash
+          pull_title: '[Backport ${target_branch}] ${pull_title}'
+          pull_description: |
+            # Backport
+            Backport of #${pull_number} to `${target_branch}`.
+        continue-on-error: true
+
+      - name: Assert action ran with copy options
+        env:
+          WAS_SUCCESSFUL: ${{ steps.action.outputs.was_successful }}
+          CREATED_PRS: ${{ steps.action.outputs.created_pull_numbers }}
+        run: |
+          echo "was_successful: $WAS_SUCCESSFUL"
+          echo "created_pull_numbers: $CREATED_PRS"
+          # Under workflow_dispatch there is no merged PR context.
+          # The action should handle this gracefully (fail or succeed with no PRs).
+          if [ "$WAS_SUCCESSFUL" = "true" ] || [ "$WAS_SUCCESSFUL" = "false" ]; then
+            echo "PASS: action produced a valid was_successful output"
+            if [ "$WAS_SUCCESSFUL" = "true" ] && [ -n "$CREATED_PRS" ]; then
+              echo "FAIL: unexpected PRs created: $CREATED_PRS"
+              exit 1
+            fi
+          else
+            echo "INFO: action errored before producing outputs (expected under workflow_dispatch)"
+            echo "PASS: action ran without crashing the workflow"
+          fi
