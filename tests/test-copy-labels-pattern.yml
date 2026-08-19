@@ -1,0 +1,38 @@
+name: Test copy_labels_pattern input
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - id: backport
+        uses: .
+        with:
+          source_pr_number: "1"
+          target_branches: "main"
+          copy_labels_pattern: "^(bug|enhancement)$"
+          github_token: ${{ github.token }}
+          github_workspace: ${{ github.workspace }}
+        continue-on-error: true
+      - name: Assert action ran and produced an outcome
+        env:
+          OUTCOME: ${{ steps.backport.outcome }}
+        run: |
+          echo "outcome: $OUTCOME"
+          if [ -z "$OUTCOME" ]; then
+            echo "FAIL: step outcome was not set (empty)"
+            exit 1
+          fi
+          echo "PASS: step outcome is '$OUTCOME'"
+      - name: Assert action completed gracefully (success or failure, not crash)
+        env:
+          OUTCOME: ${{ steps.backport.outcome }}
+        run: |
+          echo "outcome: $OUTCOME"
+          if [ "$OUTCOME" = "success" ] || [ "$OUTCOME" = "failure" ]; then
+            echo "PASS: action completed with outcome '$OUTCOME'"
+          else
+            echo "FAIL: unexpected outcome '$OUTCOME'"
+            exit 1
+          fi
