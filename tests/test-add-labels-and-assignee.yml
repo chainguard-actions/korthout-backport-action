@@ -1,4 +1,4 @@
-name: Test copy_labels_pattern input
+name: Test add_labels and add_author_as_assignee inputs
 on:
   workflow_dispatch:
 jobs:
@@ -12,7 +12,8 @@ jobs:
           # Use a source_pr_number that doesn't exist so the action fails gracefully
           source_pr_number: "999999999"
           target_branches: "nonexistent-branch"
-          copy_labels_pattern: "^(bug|enhancement|documentation)$"
+          add_author_as_assignee: "true"
+          add_labels: "backport,automated"
         continue-on-error: true
       - name: Assert was_successful output is present
         env:
@@ -25,4 +26,4 @@ jobs:
             echo "FAIL: expected action to not succeed with a non-existent PR"
             exit 1
           fi
-          echo "PASS: action handled non-existent PR gracefully with copy_labels_pattern set (was_successful=$WAS_SUCCESSFUL)"
+          echo "PASS: action handled non-existent PR gracefully (was_successful=$WAS_SUCCESSFUL)"
