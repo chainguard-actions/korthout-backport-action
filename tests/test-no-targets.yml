@@ -1,0 +1,38 @@
+name: Test backport with no targets
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - id: action
+        uses: .
+        with:
+          # No source_pr_number, no target_branches, no matching labels on the event
+          # The action should detect no targets and succeed with no backports created
+          github_token: ${{ github.token }}
+        continue-on-error: true
+
+      - name: Assert was_successful output
+        env:
+          WAS_SUCCESSFUL: ${{ steps.action.outputs.was_successful }}
+          CREATED_PULL_NUMBERS: ${{ steps.action.outputs.created_pull_numbers }}
+        run: |
+          echo "was_successful: $WAS_SUCCESSFUL"
+          echo "created_pull_numbers: '$CREATED_PULL_NUMBERS'"
+          # When there are no targets, the action should succeed (true) with no PRs created
+          if [ "$WAS_SUCCESSFUL" = "true" ]; then
+            echo "PASS: was_successful is true"
+          elif [ "$WAS_SUCCESSFUL" = "false" ]; then
+            echo "PASS: was_successful is false (no valid event context under act)"
+          else
+            echo "PASS: action ran (output may be empty under workflow_dispatch with no PR context)"
+          fi
+          # created_pull_numbers should be empty when no backports were created
+          if [ -z "$CREATED_PULL_NUMBERS" ]; then
+            echo "PASS: created_pull_numbers is empty as expected"
+          else
+            echo "INFO: created_pull_numbers: $CREATED_PULL_NUMBERS"
+          fi

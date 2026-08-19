@@ -1,0 +1,44 @@
+name: Test backport action with label configuration
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    env:
+      GITHUB_EVENT_NAME: pull_request
+      GITHUB_REF: refs/heads/main
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - id: action
+        uses: .
+        continue-on-error: true
+        with:
+          github_token: fake-token-for-testing
+          source_pr_number: "10"
+          target_branches: "stable"
+          add_labels: "backport,automated"
+          copy_labels_pattern: "^type/"
+          copy_assignees: "false"
+          copy_milestone: "false"
+
+      - name: Assert action ran and did not skip
+        run: |
+          echo "outcome: ${{ steps.action.outcome }}"
+          if [ "${{ steps.action.outcome }}" = "skipped" ]; then
+            echo "FAIL: action was skipped unexpectedly"
+            exit 1
+          fi
+          echo "PASS: action ran (outcome: ${{ steps.action.outcome }})"
+
+      - name: Assert was_successful output is present or action failed gracefully
+        env:
+          WAS_SUCCESSFUL: ${{ steps.action.outputs.was_successful }}
+        run: |
+          echo "was_successful: '$WAS_SUCCESSFUL'"
+          # When action fails due to fake token, output may be empty — that's acceptable
+          if [ "${{ steps.action.outcome }}" = "success" ] && [ -z "$WAS_SUCCESSFUL" ]; then
+            echo "FAIL: action succeeded but was_successful output is missing"
+            exit 1
+          fi
+          echo "PASS"

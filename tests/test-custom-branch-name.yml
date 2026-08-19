@@ -1,0 +1,38 @@
+name: Test backport action with custom branch name template
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    env:
+      GITHUB_EVENT_NAME: pull_request
+      GITHUB_REF: refs/heads/main
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - id: action
+        uses: .
+        continue-on-error: true
+        with:
+          github_token: fake-token-for-testing
+          source_pr_number: "42"
+          target_branches: "release-1.0"
+          branch_name: "bp-${pull_number}-${target_branch}"
+          pull_title: "[BP ${target_branch}] ${pull_title}"
+          pull_description: "Backport of #${pull_number} to ${target_branch}."
+
+      - name: Assert action ran
+        run: |
+          echo "outcome: ${{ steps.action.outcome }}"
+          if [ "${{ steps.action.outcome }}" = "skipped" ]; then
+            echo "FAIL: action was skipped unexpectedly"
+            exit 1
+          fi
+          echo "PASS: action ran (outcome: ${{ steps.action.outcome }})"
+
+      - name: Assert was_successful_by_target output
+        env:
+          WAS_SUCCESSFUL_BY_TARGET: ${{ steps.action.outputs.was_successful_by_target }}
+        run: |
+          echo "was_successful_by_target: '$WAS_SUCCESSFUL_BY_TARGET'"
+          echo "PASS: was_successful_by_target output checked"

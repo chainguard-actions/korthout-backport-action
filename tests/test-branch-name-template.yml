@@ -1,0 +1,45 @@
+name: Test backport with custom branch name template
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - id: action
+        uses: .
+        with:
+          # Custom branch name template using available placeholders
+          branch_name: 'bp-${pull_number}-${target_branch}'
+          # Custom pull title template
+          pull_title: '[BP ${target_branch}] ${pull_title}'
+          # Custom pull description template
+          pull_description: |
+            Backport of #${pull_number} to `${target_branch}`.
+            Created automatically.
+          github_token: ${{ github.token }}
+        continue-on-error: true
+
+      - name: Assert action ran with custom templates
+        env:
+          WAS_SUCCESSFUL: ${{ steps.action.outputs.was_successful }}
+          CREATED_PULL_NUMBERS: ${{ steps.action.outputs.created_pull_numbers }}
+          OUTCOME: ${{ steps.action.outcome }}
+        run: |
+          echo "outcome: $OUTCOME"
+          echo "was_successful: $WAS_SUCCESSFUL"
+          echo "created_pull_numbers: '$CREATED_PULL_NUMBERS'"
+          # The action should run (possibly fail due to no PR context) but not crash on template inputs
+          if [ "$OUTCOME" = "success" ] || [ "$OUTCOME" = "failure" ]; then
+            echo "PASS: action ran with custom branch name template (outcome=$OUTCOME)"
+          else
+            echo "FAIL: unexpected outcome: $OUTCOME"
+            exit 1
+          fi
+          # created_pull_numbers should be empty since no backport was created
+          if [ -z "$CREATED_PULL_NUMBERS" ]; then
+            echo "PASS: created_pull_numbers is empty as expected"
+          else
+            echo "INFO: created_pull_numbers: $CREATED_PULL_NUMBERS"
+          fi

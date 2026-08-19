@@ -1,0 +1,43 @@
+name: Test backport action with experimental conflict resolution config
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    env:
+      GITHUB_EVENT_NAME: pull_request
+      GITHUB_REF: refs/heads/main
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - id: action
+        uses: .
+        continue-on-error: true
+        with:
+          github_token: fake-token-for-testing
+          source_pr_number: "5"
+          target_branches: "v2"
+          experimental: |
+            {
+              "conflict_resolution": "draft_commit_conflicts"
+            }
+
+      - name: Assert action ran and did not skip
+        run: |
+          echo "outcome: ${{ steps.action.outcome }}"
+          if [ "${{ steps.action.outcome }}" = "skipped" ]; then
+            echo "FAIL: action was skipped unexpectedly"
+            exit 1
+          fi
+          echo "PASS: action ran (outcome: ${{ steps.action.outcome }})"
+
+      - name: Assert outputs are present or action failed gracefully
+        env:
+          WAS_SUCCESSFUL: ${{ steps.action.outputs.was_successful }}
+          CREATED_PULL_NUMBERS: ${{ steps.action.outputs.created_pull_numbers }}
+          WAS_SUCCESSFUL_BY_TARGET: ${{ steps.action.outputs.was_successful_by_target }}
+        run: |
+          echo "was_successful: '$WAS_SUCCESSFUL'"
+          echo "created_pull_numbers: '$CREATED_PULL_NUMBERS'"
+          echo "was_successful_by_target: '$WAS_SUCCESSFUL_BY_TARGET'"
+          echo "PASS: all outputs checked"

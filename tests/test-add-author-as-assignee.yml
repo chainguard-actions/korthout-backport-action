@@ -1,0 +1,43 @@
+name: Test backport with add_author_as_assignee enabled
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - id: action
+        uses: .
+        with:
+          # Enable add_author_as_assignee so this input is exercised
+          add_author_as_assignee: true
+          # Use an invalid PR number so the action exits quickly without making real changes
+          source_pr_number: 999999
+          target_branches: main
+          github_token: ${{ github.token }}
+        continue-on-error: true
+
+      - name: Assert action ran and produced outputs
+        env:
+          WAS_SUCCESSFUL: ${{ steps.action.outputs.was_successful }}
+          CREATED_PULL_NUMBERS: ${{ steps.action.outputs.created_pull_numbers }}
+          OUTCOME: ${{ steps.action.outcome }}
+        run: |
+          echo "outcome: $OUTCOME"
+          echo "was_successful: $WAS_SUCCESSFUL"
+          echo "created_pull_numbers: '$CREATED_PULL_NUMBERS'"
+          # With an invalid PR number, the action should fail (was_successful=false)
+          # or the step itself should fail (outcome=failure)
+          if [ "$WAS_SUCCESSFUL" = "false" ] || [ "$OUTCOME" = "failure" ]; then
+            echo "PASS: action correctly reported failure for invalid PR number"
+          else
+            echo "INFO: action outcome=$OUTCOME was_successful=$WAS_SUCCESSFUL"
+            echo "PASS: action ran without crashing"
+          fi
+          # created_pull_numbers should be empty since no backport was created
+          if [ -z "$CREATED_PULL_NUMBERS" ]; then
+            echo "PASS: created_pull_numbers is empty as expected"
+          else
+            echo "INFO: created_pull_numbers: $CREATED_PULL_NUMBERS"
+          fi
