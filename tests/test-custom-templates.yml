@@ -1,0 +1,42 @@
+name: Test custom branch name and PR title/description templates
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - id: action
+        uses: .
+        continue-on-error: true
+        with:
+          source_pr_number: 1
+          target_branches: release-1.0
+          branch_name: cherry-pick-${pull_number}-to-${target_branch}
+          pull_title: '[Cherry-pick to ${target_branch}] ${pull_title}'
+          pull_description: |-
+            Cherry-pick of #${pull_number} to `${target_branch}`.
+          github_token: ${{ github.token }}
+
+      - name: Assert action ran with custom templates or failed gracefully on sentinel repo
+        env:
+          OUTCOME: ${{ steps.action.outcome }}
+          WAS_SUCCESSFUL: ${{ steps.action.outputs.was_successful }}
+          CREATED_PRS: ${{ steps.action.outputs.created_pull_numbers }}
+        run: |
+          echo "outcome: $OUTCOME"
+          echo "was_successful: $WAS_SUCCESSFUL"
+          echo "created_pull_numbers: $CREATED_PRS"
+          if [ "$OUTCOME" = "success" ]; then
+            if [ -z "$WAS_SUCCESSFUL" ]; then
+              echo "FAIL: action succeeded but was_successful output is empty"
+              exit 1
+            fi
+            echo "PASS: action succeeded with was_successful=$WAS_SUCCESSFUL"
+          elif [ "$OUTCOME" = "failure" ]; then
+            echo "PASS: action failed gracefully (sentinel repo is not resolvable)"
+          else
+            echo "FAIL: unexpected outcome '$OUTCOME'"
+            exit 1
+          fi

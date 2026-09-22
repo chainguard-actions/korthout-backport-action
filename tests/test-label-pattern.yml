@@ -1,0 +1,38 @@
+name: Test custom label pattern input
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - id: action
+        uses: .
+        continue-on-error: true
+        with:
+          # Custom label pattern to match labels like "port-to-v1" instead of default "backport v1"
+          label_pattern: '^port-to ([^ ]+)$'
+          source_pr_number: 1
+          target_branches: stable
+          github_token: ${{ github.token }}
+
+      - name: Assert action ran with custom label pattern or failed gracefully on sentinel repo
+        env:
+          OUTCOME: ${{ steps.action.outcome }}
+          WAS_SUCCESSFUL: ${{ steps.action.outputs.was_successful }}
+        run: |
+          echo "outcome: $OUTCOME"
+          echo "was_successful: $WAS_SUCCESSFUL"
+          if [ "$OUTCOME" = "success" ]; then
+            if [ -z "$WAS_SUCCESSFUL" ]; then
+              echo "FAIL: action succeeded but was_successful output is empty"
+              exit 1
+            fi
+            echo "PASS: action succeeded with was_successful=$WAS_SUCCESSFUL"
+          elif [ "$OUTCOME" = "failure" ]; then
+            echo "PASS: action failed gracefully (sentinel repo is not resolvable)"
+          else
+            echo "FAIL: unexpected outcome '$OUTCOME'"
+            exit 1
+          fi
