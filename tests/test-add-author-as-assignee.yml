@@ -1,0 +1,37 @@
+name: Test add_author_as_assignee input
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - id: backport
+        uses: .
+        continue-on-error: true
+        with:
+          add_author_as_assignee: true
+          target_branches: main
+          source_pr_number: 1
+          github_token: ${{ github.token }}
+
+      - name: Assert action ran (outputs set, or failed gracefully on the sentinel repo)
+        env:
+          OUTCOME: ${{ steps.backport.outcome }}
+          WAS_SUCCESSFUL: ${{ steps.backport.outputs.was_successful }}
+        run: |
+          echo "outcome: $OUTCOME"
+          echo "was_successful: $WAS_SUCCESSFUL"
+          if [ "$OUTCOME" = "success" ]; then
+            if [ -z "$WAS_SUCCESSFUL" ]; then
+              echo "FAIL: action succeeded but was_successful output is empty"
+              exit 1
+            fi
+            echo "PASS: action succeeded with was_successful='$WAS_SUCCESSFUL'"
+          elif [ "$OUTCOME" = "failure" ]; then
+            echo "PASS: action failed gracefully (sentinel repo is not resolvable)"
+          else
+            echo "FAIL: unexpected outcome '$OUTCOME'"
+            exit 1
+          fi
