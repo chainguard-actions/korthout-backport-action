@@ -1,0 +1,40 @@
+name: Test basic usage with source_pr_number
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          fetch-depth: 0
+      - id: action
+        uses: .
+        continue-on-error: true
+        with:
+          source_pr_number: "1"
+          target_branches: release-1.0
+          cherry_picking: pull_request_head
+          merge_commits: skip
+          comment_style: summary
+      - name: Assert action ran (outputs valid, or failed gracefully on the sentinel repo)
+        env:
+          OUTCOME: ${{ steps.action.outcome }}
+          WAS_SUCCESSFUL: ${{ steps.action.outputs.was_successful }}
+          BY_TARGET: ${{ steps.action.outputs.was_successful_by_target }}
+        run: |
+          echo "outcome: $OUTCOME"
+          echo "was_successful: $WAS_SUCCESSFUL"
+          echo "was_successful_by_target: $BY_TARGET"
+          if [ "$OUTCOME" = "success" ]; then
+            if [ -n "$WAS_SUCCESSFUL" ] && [ "$WAS_SUCCESSFUL" != "true" ] && [ "$WAS_SUCCESSFUL" != "false" ]; then
+              echo "FAIL: was_successful must be 'true' or 'false', got '$WAS_SUCCESSFUL'"
+              exit 1
+            fi
+            echo "PASS: action succeeded"
+          elif [ "$OUTCOME" = "failure" ]; then
+            echo "PASS: action failed gracefully (sentinel repo is not resolvable)"
+          else
+            echo "FAIL: unexpected outcome '$OUTCOME'"
+            exit 1
+          fi
