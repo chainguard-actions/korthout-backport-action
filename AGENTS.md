@@ -1,0 +1,58 @@
+# AGENTS.md
+
+GitHub Action that backports merged PRs to other branches.
+
+## Product values
+
+Preserve when making changes:
+- **Fast** — the action runs quickly for end users, also on very large repositories: fetch only what's needed, and weigh every extra GitHub API call
+- **No inputs required** — sensible defaults; drop-in usable without any inputs. Inputs add flexibility: a new input defaults to the existing behavior, and a major release may change its default, so defaults converge on what fits most users
+- **Flexible & configurable** — handles different trigger events and contexts; configurable to fit different use cases
+- **Clear** — the action communicates what it did (and what it tried)
+
+## Don't break user space
+
+The **contract** — everything observable through inputs, outputs, job status, triggering events, environment assumptions, and what the action writes to git and GitHub — changes only in a major release. Comments and logs are prose, not contract. A change may ship in a minor or patch only when the old behavior was unusable, unstable or unobservable, when it only adds to the contract, or when it only changes prose. Breaking pull requests get the `breaking` label and don't ship in the current major: they wait for the next major to be cut, or merge to `main` once `main` develops it. See [ADR-0001](docs/adr/0001-compatibility-and-releases.md).
+
+## Do one thing well
+
+The action backports merged pull requests. A request fits when it's part of that job run and can't reasonably be done by other means. See [ADR-0003](docs/adr/0003-scope-and-safety.md).
+
+## Maintainability
+
+This action has many users; maintainer burden compounds. When facing tradeoffs, prefer obvious code over clever abstractions, fewer dependencies over more, and changes that don't complicate the release flow. Existing style isn't sacred — when touching code, diverge from the surrounding pattern when it improves maintainability.
+
+## Code
+
+- Modern, idiomatic TypeScript
+- Two external boundaries: `GithubApi` (`src/github.ts`) and `GitApi` (`src/git.ts`) — see docs/TESTING.md
+- `package-lock.json` is authoritative. Don't run `npm install` to "fix" things — investigate the root cause
+
+## Working in this repo
+
+- Run `npm run all` before declaring a change done (format + build + package + test)
+- Tests: `npm test` (or `npm run test-verbose` for individual names)
+- **Never commit `dist/` in a PR** — the Publish workflow rebuilds it post-merge; including it breaks backporting (see docs/CI.md)
+- Once `release-vN` is cut, `main` develops the next major. A change that should also ship in the current major gets the `backport release-vN` label (today `backport release-v4`); breaking changes don't. See [CONTRIBUTING.md](CONTRIBUTING.md#branches-and-backports)
+- Merging goes through the Mergify queue (`@mergifyio queue`) — don't merge or push to `main` directly
+- File issues from a template in `.github/ISSUE_TEMPLATE/`, keep its headings, and pass its `labels` to `gh issue create --label`
+- Label a pull request with the label its issue template would give (`bug`, `enhancement`, `maintenance`). `documentation` is for user-facing docs; work on the repository itself, including contributor docs and `SECURITY.md`, is `maintenance`
+- An input's name states exactly what it does and aligns with its siblings (e.g. `copy_requested_reviewers`, `add_labels`, `auto_merge_enabled`)
+
+## Reviewing contributions
+
+- Agree on the design in the issue before a pull request is written
+- The maintainer may take over a contribution to ship it sooner, instead of running another review round. Always credit the contributor in the release notes. See the [take-over-contribution](.claude/skills/take-over-contribution/SKILL.md) skill.
+- Pre-existing bugs found in review get their own issue; don't fold them into an unrelated pull request
+
+## Pointers
+
+Entry points live at the root (README, CONTRIBUTING, AGENTS, CONTEXT). Reference material they link to lives in `docs/`.
+
+- [docs/DOCUMENTING.md](docs/DOCUMENTING.md) — doc conventions; read when changing or reviewing README.md or action.yml
+- [CONTRIBUTING.md](CONTRIBUTING.md) — build, package, release flow
+- [docs/TESTING.md](docs/TESTING.md) — test architecture, where to add tests, E2E
+- [CONTEXT.md](CONTEXT.md) — domain language; use its terms and respect its _Avoid_ lists
+- [docs/adr/](docs/adr/README.md) — product decisions: compatibility and releases, when to add an input, scope and safety, reporting and failure
+- [docs/CI.md](docs/CI.md) — CI workflows, the `dist/` rule, Publish concurrency
+- [docs/MAJOR-RELEASE.md](docs/MAJOR-RELEASE.md) — major releases: branches, starting and releasing the next major
