@@ -19,6 +19,7 @@ Hardened by [Chainguard](https://www.chainguard.dev) from the upstream action at
 | v4.7.0 | [`v4.7.0`](https://github.com/chainguard-actions/korthout-backport-action/tree/v4.7.0) | [`8560fb5`](https://github.com/korthout/backport-action/commit/8560fb503c275d433c56f05a2f64850093baa9f7) | [`HARDENING.md`](https://github.com/chainguard-actions/korthout-backport-action/blob/v4.7.0/HARDENING.md) |
 | v4.7.1 | [`v4.7.1`](https://github.com/chainguard-actions/korthout-backport-action/tree/v4.7.1) | [`0ebd44f`](https://github.com/korthout/backport-action/commit/0ebd44f9c79a4a0a171200dcdcceec3ed9ca732f) | [`HARDENING.md`](https://github.com/chainguard-actions/korthout-backport-action/blob/v4.7.1/HARDENING.md) |
 | v4.7.2 | [`v4.7.2`](https://github.com/chainguard-actions/korthout-backport-action/tree/v4.7.2) | [`42c9c2a`](https://github.com/korthout/backport-action/commit/42c9c2aa6519526a6fcfa05ce29e4a8b1520905b) | [`HARDENING.md`](https://github.com/chainguard-actions/korthout-backport-action/blob/v4.7.2/HARDENING.md) |
+| v5.0.0 | [`v5.0.0`](https://github.com/chainguard-actions/korthout-backport-action/tree/v5.0.0) | [`ad272ff`](https://github.com/korthout/backport-action/commit/ad272ff24e4a8593bf18a951a154ae6af93b26b8) | [`HARDENING.md`](https://github.com/chainguard-actions/korthout-backport-action/blob/v5.0.0/HARDENING.md) |
 
 ## Privacy
 
