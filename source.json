@@ -4,8 +4,13 @@
   "version": "v5.0.0",
   "commit_sha": "ad272ff24e4a8593bf18a951a154ae6af93b26b8",
   "url": "https://github.com/korthout/backport-action",
-  "policy_sha": "d636be7e43ef829af6e853da6b3c7566db9f72fe",
+  "policy_sha": "374911c4be584df24e6da57af2d990570ef0f859",
   "test_policy_sha": "843adf9e4b8f85d0c08b27b9d0b09dd094b54702",
   "test_agent_version": "2",
-  "harden_agent_version": "2"
+  "harden_agent_version": "2",
+  "dist_artifact": {
+    "gcs_uri": "gs://patch-actions-node-artifacts/dist-artifacts/korthout/backport-action/v5.0.0/sha256-e01580966965928199e282e28c2b3b02dc2c151e74fa35d0fb82f428544d9a1f.tar.gz",
+    "sha256": "e01580966965928199e282e28c2b3b02dc2c151e74fa35d0fb82f428544d9a1f",
+    "size_bytes": 191786
+  }
 }
